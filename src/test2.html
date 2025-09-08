@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunny CRM Login - Components</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js for interactivity -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Applying the Inter font to the body */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom animation for floating cards */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div id="app" class="flex min-h-screen">
+        <!-- The main layout is now composed of our custom components -->
+        <login-form class="flex flex-col justify-center w-full lg:w-1/2 bg-white p-8 sm:p-12 md:p-16"></login-form>
+        <image-panel class="hidden lg:flex w-1/2 bg-gray-100 relative items-center justify-center p-8"></image-panel>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        // --- Component Definitions ---
+
+        // 1. Reusable FormInput Component
+        const FormInput = {
+            props: ['modelValue', 'label', 'type', 'placeholder', 'required'],
+            emits: ['update:modelValue', 'toggle-password'],
+            template: `
+                <div class="mb-4">
+                    <label :for="label" class="block text-sm font-medium text-gray-700 mb-1">{{ label }} *</label>
+                    <div class="relative">
+                        <input 
+                            :value="modelValue" 
+                            @input="$emit('update:modelValue', $event.target.value)"
+                            :type="type" 
+                            :id="label" 
+                            :name="label" 
+                            :placeholder="placeholder" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500" 
+                            :required="required">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <!-- Slot for icons or buttons inside the input -->
+                            <slot></slot>
+                        </div>
+                    </div>
+                    <p v-if="!modelValue && required" class="text-xs text-red-500 mt-1">{{ label }} is required</p>
+                </div>
+            `
+        };
+
+        // 2. Reusable FloatingCard Component
+        const FloatingCard = {
+            props: ['positionClasses', 'animationDelay'],
+            template: `
+                <div class="absolute bg-white p-4 rounded-lg shadow-xl flex items-center gap-4 animate-float" :class="positionClasses" :style="{ animationDelay: animationDelay }">
+                    <!-- Slot for the card content -->
+                    <slot></slot>
+                </div>
+            `
+        };
+
+        // 3. LoginForm Component (Left Panel)
+        const LoginForm = {
+            components: {
+                'form-input': FormInput
+            },
+            setup() {
+                const email = ref('');
+                const password = ref('');
+                const passwordFieldType = ref('password');
+
+                const togglePasswordVisibility = () => {
+                    passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
+                };
+                
+                const handleSubmit = () => {
+                    if (email.value && password.value) {
+                        console.log('Logging in with:', { email: email.value, password: password.value });
+                        alert(`Welcome, ${email.value}!`);
+                    } else {
+                        alert('Please fill in both email and password.');
+                    }
+                };
+
+                return { email, password, passwordFieldType, togglePasswordVisibility, handleSubmit };
+            },
+            template: `
+                <div class="mx-auto w-full max-w-md">
+                    <!-- Logo and Title -->
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="bg-yellow-400 p-2 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-800">SUNNY CRM</h1>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form @submit.prevent="handleSubmit">
+                        <form-input v-model="email" label="Email" type="email" placeholder="Enter your email" required>
+                            <svg class="w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </form-input>
+                        
+                        <form-input v-model="password" label="Password" :type="passwordFieldType" placeholder="••••••••" required>
+                             <button type="button" @click="togglePasswordVisibility">
+                                <svg v-if="passwordFieldType === 'password'" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                <svg v-else class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.111 2.458.318M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.582 17.582A4.5 4.5 0 0112 16.5a4.5 4.5 0 01-5.582-1.082m11.164 0A10.02 10.02 0 0012 7.5a10.02 10.02 0 00-5.582 1.5M1 1l22 22"></path></svg>
+                            </button>
+                        </form-input>
+
+                        <!-- Remember Me & Forgot Password -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center">
+                                <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-yellow-500 focus:ring-yellow-400 border-gray-300 rounded">
+                                <label for="remember-me" class="ml-2 block text-sm text-gray-900">Remember me</label>
+                            </div>
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-yellow-600 hover:text-yellow-500">Forgot password?</a>
+                            </div>
+                        </div>
+
+                        <!-- Sign In Button -->
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Sign in</button>
+                    </form>
+
+                    <!-- Sign Up Link -->
+                    <p class="mt-6 text-center text-sm text-gray-600">
+                        New on our platform? <a href="#" class="font-medium text-yellow-600 hover:text-yellow-500">Create an account</a>
+                    </p>
+
+                    <!-- Divider -->
+                    <div class="my-6 flex items-center justify-center">
+                        <div class="flex-grow border-t border-gray-300"></div>
+                        <span class="flex-shrink mx-4 text-sm text-gray-500">or login using</span>
+                        <div class="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    <!-- Google Login Button -->
+                    <button type="button" class="w-full flex items-center justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <svg class="w-5 h-5 mr-2" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.22 0-9.655-3.657-11.13-8.584l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-.792 2.237-2.231 4.16-4.082 5.574l6.19 5.238C42.012 35.24 44 30.025 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
+                        G Google
+                    </button>
+                </div>
+            `
+        };
+
+        // 4. ImagePanel Component (Right Panel)
+        const ImagePanel = {
+            components: {
+                'floating-card': FloatingCard
+            },
+            template: `
+                <div>
+                    <!-- Main image -->
+                    <img src="https://storage.googleapis.com/gemini-prod-us-west1-assets/original_images/image_for_login_page_1.png" 
+                         alt="Happy customer using CRM" 
+                         class="max-w-md xl:max-w-lg rounded-lg"
+                         onerror="this.onerror=null;this.src='https://placehold.co/500x600/f3f4f6/e5e7eb?text=Image+Not+Found';">
+                    
+                    <!-- Floating Card 1 -->
+                    <floating-card positionClasses="top-24 left-12">
+                        <img src="https://i.pravatar.cc/48?u=man" alt="User avatar" class="w-12 h-12 rounded-full" onerror="this.onerror=null;this.src='https://placehold.co/48x48/e0e0e0/333333?text=U';">
+                        <div>
+                            <div class="w-24 h-2 bg-green-200 rounded-full mb-2"></div>
+                            <div class="w-16 h-2 bg-green-200 rounded-full"></div>
+                        </div>
+                        <div class="bg-green-100 text-green-600 p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                    </floating-card>
+
+                    <!-- Floating Card 2 -->
+                    <floating-card positionClasses="bottom-24 left-20" animationDelay="2s">
+                        <img src="https://i.pravatar.cc/48?u=person" alt="User avatar" class="w-12 h-12 rounded-full" onerror="this.onerror=null;this.src='https://placehold.co/48x48/e0e0e0/333333?text=U';">
+                        <div>
+                            <div class="w-20 h-2 bg-red-200 rounded-full mb-2"></div>
+                            <div class="flex items-center">
+                                <svg v-for="i in 3" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="bg-red-100 text-red-600 p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+                        </div>
+                    </floating-card>
+
+                    <!-- Floating Card 3 -->
+                    <floating-card positionClasses="top-1/2 -translate-y-1/2 right-4">
+                        <img src="https://i.pravatar.cc/48?u=woman" alt="User avatar" class="w-12 h-12 rounded-full" onerror="this.onerror=null;this.src='https://placehold.co/48x48/e0e0e0/333333?text=U';">
+                        <div>
+                            <div class="flex items-center mb-2">
+                                <svg v-for="i in 5" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                            </div>
+                            <div class="w-20 h-2 bg-gray-200 rounded-full"></div>
+                        </div>
+                        <div class="bg-yellow-400 text-white p-2 rounded-full">
+                           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
+                        </div>
+                    </floating-card>
+                </div>
+            `
+        };
+
+
+        // --- Vue App Initialization ---
+    //     const app = createApp({});
+
+    //     // Register all the components
+    //     app.component('login-form', LoginForm);
+    //     app.component('image-panel', ImagePanel);
+        
+    //     // Mount the app to the DOM
+    //     app.mount('#app');
+
+    // </script>
+
+</body>
+</html>
