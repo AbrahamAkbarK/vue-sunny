@@ -1,52 +1,73 @@
 <script setup>
-import { onMounted,ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import SideBarbase from './components/sideBarbase.vue'
 import NavBarbase from './components/navBarbase.vue'
 import Breadcrumb from './components/breadcrumb.vue'
 import ButtonBase from './components/buttonBase.vue'
 import ButtonItems from './components/buttonItems.vue'
 import api from './axios'
-
 const toggleActive = ref(false)
 function handleToggle() {
   toggleActive.value = !toggleActive.value
 }
 
-const artists = ref([]);
-const currentPage = ref(1)
-const lastPage = ref(1)
-const loading = ref(false)
+const composers = ref([]);
+const loading = ref(false);
+const error = ref('');
+const currentPage = ref(1);
 
-const fetchArtists = async () => {
-  try {
-    const response = await api.get('/artists')
-    artists.value = response.data.data
-    console.log('Fetched artists:', artists.value)
-  } catch (error) {
-    console.error('Error fetching artists:', error)
-  }
-}
 
-async function PageArtists(page = 1) {
-  loading.value = true
+
+async function fetchComposers(page = 1) {
   try {
-    const response = await api.get(`/artists?page=${page}`, { withCredentials: true })
-    const resData = response.data
-    artists.value = resData.data // paginated songs array
-    currentPage.value = resData.current_page
-    lastPage.value = resData.last_page
-  } catch (error) {
-    console.error('Failed to fetch songs:', error)
+    loading.value = true;
+    error.value = '';
+
+    // Axios params object (simpler than URLSearchParams)
+    const params = {
+      page: page,
+    };
+
+    const response = await api.get('/composers', {  // BaseURL from main.js if set
+      params: params,
+      withCredentials: true,  // For auth/cookies (if not global)
+    });
+
+    // Axios auto-parses JSON; access response.data
+    const data = response.data;
+
+    // Validate: Ensure data is array of objects (handles "not number/array" issues)
+    if (!Array.isArray(data.data)) {
+      throw new Error('Invalid response: Expected array of composers');
+    }
+    composers.value = data.data;
+    // Initial sort and filter
+    console.log('Composers Loaded via Axios:', composers.value.length, 'items');  // Debug
+  } catch (err) {
+    // Axios error handling: Check if it's an HTTP error or network
+    if (err.response) {
+      // Server responded with error status
+      console.error('Axios HTTP Error:', err.response.status, err.response.data);
+      error.value = `API Error: ${err.response.status} - ${err.response.statusText}`;
+    } else if (err.request) {
+      // Network error (no response)
+      console.error('Axios Network Error:', err.request);
+      error.value = 'Network error: Unable to reach server';
+    } else {
+      // Other error (e.g., request setup)
+      console.error('Axios Error:', err.message);
+      error.value = err.message || 'Failed to fetch composers';
+    }
+
+    composers.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 onMounted(()=> {
-  fetchArtists()
-  PageArtists()
+  fetchComposers();
 })
-
 
 </script>
 
@@ -55,16 +76,16 @@ onMounted(()=> {
     <SideBarbase :class="{ hide: toggleActive }"></SideBarbase>
     <div class="main-content">
       <NavBarbase @toggleActive="handleToggle"></NavBarbase>
-      <Breadcrumb>Artist</Breadcrumb>
-      <div class="container-fluid mb-5">
+      <Breadcrumb>Composer</Breadcrumb>
+      <div class="container-fluid mb-2">
         <div class="row">
           <div class="col-md-12">
             <div class="card custom-card border-0">
-              <div class="card-header align-items-center bg-white">
+              <div class="card-header align-items-center bg-white border-0">
                 <div class="card-body d-flex p-0 justify-content-between flex-fill">
                   <div class="d-flex align-items-center flex-wrap gap-2">
                     <div class="card-header bg-white border-0 p-1">
-                      <h1 style="font-weight: 300;">Artist</h1>
+                      <h1 style="font-weight: 300;">Composer</h1>
                       <div class="d-flex">
                         <button type="button" class="btn btn-warning">new</button>
                         <div class="dropdown">
@@ -131,27 +152,29 @@ onMounted(()=> {
                             <thead>
                               <tr>
                                 <th scope="col">Name</th>
-                                <th scope="col">Genre</th>
-                                <th scope="col">Category</th>
-                                <th scope="col">Manager/Contact Person</th>
+                                <th scope="col">Birth Date</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone Number</th>
+                                <th scope="col">Address</th>
                               </tr>
                             </thead>
                             <tbody>
-                              <tr v-for="artist in artists" :key="artist.id">
+                              <tr v-for="composer in composers" :key="composer.id">
                                 <td>
-                                  <RouterLink :to="`/artist-member/${artist.id}`" class="view-btn">
-                                    {{ artist.name }}
+                                  <RouterLink :to="`/composer-detail/${composer.id}`">
+                                    {{ composer.name }}
                                   </RouterLink>
                                 </td>
                                 <td>
-                                  {{ artist.genre }}
+                                  {{ composer.birth_date.substring(0,10)}}
                                 </td>
                                 <td>
-                                  {{ artist.category }}
+                                  {{ composer.email }}
                                 </td>
                                 <td>
-                                  <a href="">{{ artist.manager }}</a>
+                                  {{ composer.phone }}
                                 </td>
+                                <td>{{ composer.address }}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -162,20 +185,19 @@ onMounted(()=> {
                 </div>
               </div>
               <div class="card-footer">
-                <div v-if="loading">Loading...</div>
                 <div class="d-flex align-items-center">
-                  <div id="user_table_info">Page {{ currentPage }} of {{ lastPage }}</div>
+                  <div id="user_table_info">Showing 1 to 1 of 1 entries</div>
                   <div id="user_table_pagination" class="ms-auto">
                     <nav aria-label="Page navigation example">
-                      <ul v-if="lastPage > 1" class="pagination justify-content-end">
-                        <li :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-item">
-                          <span  :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-link">Previous</span>
+                      <ul class="pagination justify-content-end">
+                        <li class="page-item disabled">
+                          <a class="page-link">Previous</a>
                         </li>
                         <li class="page-item"><a class="page-link" href="#">1</a></li>
                         <li class="page-item"><a class="page-link" href="#">2</a></li>
                         <li class="page-item"><a class="page-link" href="#">3</a></li>
                         <li class="page-item">
-                          <span  :disabled="currentPage === lastPage" @click="PageArtists(currentPage + 1)" class="page-link">Next</span>
+                          <a class="page-link" href="#">Next</a>
                         </li>
                       </ul>
                     </nav>

@@ -1,58 +1,156 @@
 <script setup>
-import { ref } from 'vue';
-const toggleActive = ref(false);
+import { ref } from 'vue'
+import SideBarbase from './components/sideBarbase.vue'
+import NavBarbase from './components/navBarbase.vue'
+import Breadcrumb from './components/breadcrumb.vue'
+import ButtonBase from './components/buttonBase.vue'
+import ButtonItems from './components/buttonItems.vue'
+const toggleActive = ref(false)
+function handleToggle() {
+  toggleActive.value = !toggleActive.value
+}
 </script>
 
 <template>
-  <div :class="['sidebar', { hide: toggleActive }]">
-      <div class="header">
-        <div class="list-item">
-          <a href="">
-            <img
-              src="https://dev.sunny.co.id/build/assets/sunny_logo_black_no_bg-CLHsmPE_.png"
-              alt="logo"
-              class="logo"
-            />
-          </a>
+  <div class="container">
+    <SideBarbase :class="{ hide: toggleActive }"></SideBarbase>
+    <div class="main-content">
+      <NavBarbase @toggleActive="handleToggle"></NavBarbase>
+      <Breadcrumb>Composer</Breadcrumb>
+      <div class="container-fluid mb-2">
+        <div class="card card-custom">
+          <div class="card-header bg-white border-0">
+            <h1>Aku Harus Pergi</h1>
+            <div class="d-flex justify-content-between mb-2">
+              <div class="d-flex">
+                <button type="button" class="btn btn-warning">close</button>
+                <div class="dropdown">
+                  <button
+                    class="btn btn-outline-primary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Action
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-primary dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  VIEW
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <ul class="nav nav-underline p-3">
+            <li class="nav-item">
+              <RouterLink to="/asset-detail">
+                <a class="nav-link" aria-current="page" href="">GENERAL INFORMATION</a>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink to="/asset-link">
+                <a class="nav-link" aria-current="page">LINK</a>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink to="/asset-contract">
+                <a class="nav-link" aria-current="page" href="">CONTRACT</a>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink to="/asset-attach">
+                <a class="nav-link active" aria-current="page">ATTACHMENT AND NOTES</a>
+              </RouterLink>
+            </li>
+          </ul>
+          <div class="card-body">
+            <div class="d-flex">
+              <button type="button" class="btn btn-outline-primary border-0">
+                Attachment
+                <img src="/src/assets/x.svg" alt="" />
+              </button>
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-primary dropdown-toggle border-0"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <img src="/src/assets/three-dots.svg" alt="" />
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="main">
-        <hr />
-        <div class="category">
+      <footer class="footer py-3 mt-auto bg-white">Copyright © 2025</footer>
+    </div>
+  </div>
+
+  <div
+    class="modal fade"
+    id="staticBackdrop"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+    tabindex="-1"
+    aria-labelledby="staticBackdropLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
         </div>
-        <div class="list-item btn">
-          <router-link to="/dashboard" class="link">
-            <img src="/src/assets/person.svg" alt="" class="icon" />
-            <span class="description">Dashboard</span>
-          </router-link>
-        </div>
-        <div class="list-item btn">
-          <router-link to="/asset-list" class="link">
-            <img src="/src/assets/clipboard-data.svg" alt="" class="icon" />
-            <span class="description">Asset</span>
-          </router-link>
-        </div>
-        <div class="list-item btn">
-          <router-link to="/artist-list" class="link">
-            <img src="/src/assets/file-earmark-text.svg" alt="" class="icon" />
-            <span class="description">Artist</span>
-          </router-link>
-        </div>
-        <div class="list-item btn">
-          <router-link to="/composer-list" class="link">
-            <img src="/src/assets/file-earmark-text.svg" alt="" class="icon" />
-            <span class="description">Composer</span>
-          </router-link>
-        </div>
-        <div class="list-item btn">
-          <router-link to="/knowledge-base" class="link">
-            <img src="/src/assets/file-earmark-text.svg" alt="" class="icon" />
-            <span class="description">Knowledge base</span>
-          </router-link>
+        <div class="modal-body p-3 p-lg-4">
+          <div class="text-center mb-3">
+            <h4 class="modal-title" id="staticBackdropLabel">Register User</h4>
+          </div>
+          <div class="p-lg-4 p-2">
+            <form>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email" />
+              </div>
+            </form>
+          </div>
+          <div class="justify-content-center text-center gap-2">
+            <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Save</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 </template>
+
 <style scoped>
 .container {
   display: flex;
@@ -243,7 +341,6 @@ const toggleActive = ref(false);
   padding: 4px 8px;
   border-radius: 4px;
   margin: 5px;
-  color: white;
 }
 
 .border-header {
@@ -252,7 +349,6 @@ const toggleActive = ref(false);
 }
 
 .table {
-  padding: 14px 20px;
   margin: 10px;
 }
 .table thead tr th {
@@ -318,10 +414,6 @@ const toggleActive = ref(false);
   padding: 20px;
 }
 
-.card-header {
-  padding: 20px;
-}
-
 .ms-auto {
   height: 38px;
 }
@@ -334,12 +426,6 @@ const toggleActive = ref(false);
   bottom: 0;
   width: 100%;
   padding-inline-end: 245px;
-}
-
-.dropdown {
-  height: 37px;
-  position: relative;
-  width: 34px;
 }
 
 .btn.btn-sm {
@@ -359,6 +445,10 @@ const toggleActive = ref(false);
   vertical-align: middle;
 }
 
+a {
+  text-decoration: none;
+}
+
 .link {
   width: 100%;
 }
@@ -376,5 +466,13 @@ const toggleActive = ref(false);
 
 .dropdown-item {
   padding: 10px 16px;
+}
+
+.detail-items {
+  margin: 15px;
+}
+
+.card {
+  margin: 10px;
 }
 </style>

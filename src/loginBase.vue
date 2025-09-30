@@ -1,26 +1,40 @@
 <script setup>
-import { alertSuccess } from './assets/alert'
+import { alertError, alertSuccess } from './assets/alert'
 import ButtonBase from './components/buttonBase.vue'
 import IconHead from './components/iconHead.vue'
 import InputField from './components/inputField.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from './axios'
 
-const email = ref('')
-const password = ref('')
+const loginEmail = ref('')
+const loginPassword = ref('')
+const error = ref(null)
 const router = useRouter()
 
-async function submitHandler (){
-  if (!email.value.trim() || !password.value.trim()) {
-    alert('Please fill in all fields.')
-    return
-  } else {
-    await alertSuccess('Login successful!')
-    console.log(`Email: ${email.value}, Password: ${password.value}`)
-    router.push({
-      path: '/dashboard',
-    })
+async function submitHandler() {
+  try {
+    const response = await api.post('/login', {
+      email: loginEmail.value,
+      password: loginPassword.value,
+    });
+    localStorage.setItem('token', response.data.token);
+    await alertSuccess('Login Succecful');
+    router.push('/dashboard');
+  } catch (err) {
+    await alertError('Login Failed');
+    error.value = err.response?.data?.message || 'Login failed';
   }
+  // if (!email.value.trim() || !password.value.trim()) {
+  //   alert('Please fill in all fields.')
+  //   return
+  // } else {
+  //   await alertSuccess('Login successful!')
+  //   console.log(`Email: ${email.value}, Password: ${password.value}`)
+  //   router.push({
+  //     path: '/dashboard',
+  //   })
+  // }
 }
 </script>
 
@@ -32,7 +46,7 @@ async function submitHandler (){
             label="email"
             type="email"
             placeholder="Enter your email"
-            v-model="email"
+            v-model="loginEmail"
             required
           >
           </input-field>
@@ -40,7 +54,7 @@ async function submitHandler (){
             label="password"
             type="password"
             placeholder="Enter your password"
-            v-model="password"
+            v-model="loginPassword"
             required
           >
           </input-field>

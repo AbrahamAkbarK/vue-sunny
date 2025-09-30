@@ -1,5 +1,25 @@
 <script setup>
+import { ref } from 'vue'
+import api from '../axios'
+import { useRouter } from 'vue-router'
 
+const user = ref('');
+const token = ref('');
+const router = useRouter();
+
+async function logout() {
+  try {
+    await api.post('/logout');
+    // Clear user data and tokens locally
+    user.value = null;
+    token.value = null;
+    localStorage.removeItem('token');
+    // Redirect or update UI accordingly
+    router.push('/');
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+}
 </script>
 
 <template>
@@ -85,8 +105,8 @@
               <li>
                 <router-link to="/profile" class="dropdown-item">Profile</router-link>
               </li>
-              <li>
-                <router-link to="/" class="dropdown-item">Logout</router-link>
+              <li @click="logout" method="post">
+                <span class="dropdown-item">Logout</span>
               </li>
             </ul>
           </div>

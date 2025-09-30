@@ -1,53 +1,14 @@
 <script setup>
-import { onMounted,ref } from 'vue'
+import { ref } from 'vue'
 import SideBarbase from './components/sideBarbase.vue'
 import NavBarbase from './components/navBarbase.vue'
 import Breadcrumb from './components/breadcrumb.vue'
 import ButtonBase from './components/buttonBase.vue'
 import ButtonItems from './components/buttonItems.vue'
-import api from './axios'
-
 const toggleActive = ref(false)
 function handleToggle() {
   toggleActive.value = !toggleActive.value
 }
-
-const artists = ref([]);
-const currentPage = ref(1)
-const lastPage = ref(1)
-const loading = ref(false)
-
-const fetchArtists = async () => {
-  try {
-    const response = await api.get('/artists')
-    artists.value = response.data.data
-    console.log('Fetched artists:', artists.value)
-  } catch (error) {
-    console.error('Error fetching artists:', error)
-  }
-}
-
-async function PageArtists(page = 1) {
-  loading.value = true
-  try {
-    const response = await api.get(`/artists?page=${page}`, { withCredentials: true })
-    const resData = response.data
-    artists.value = resData.data // paginated songs array
-    currentPage.value = resData.current_page
-    lastPage.value = resData.last_page
-  } catch (error) {
-    console.error('Failed to fetch songs:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(()=> {
-  fetchArtists()
-  PageArtists()
-})
-
-
 </script>
 
 <template>
@@ -55,42 +16,104 @@ onMounted(()=> {
     <SideBarbase :class="{ hide: toggleActive }"></SideBarbase>
     <div class="main-content">
       <NavBarbase @toggleActive="handleToggle"></NavBarbase>
-      <Breadcrumb>Artist</Breadcrumb>
-      <div class="container-fluid mb-5">
+      <Breadcrumb>Composer</Breadcrumb>
+      <div class="container-fluid mb-2">
+        <div class="card card-custom">
+          <div class="card-header bg-white border-0">
+            <h1>Sandy B</h1>
+            <div class="d-flex justify-content-between mb-2">
+              <div class="d-flex">
+                <button type="button" class="btn btn-warning">close</button>
+                <div class="dropdown">
+                  <button
+                    class="btn btn-outline-primary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Action
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-primary dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  VIEW
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="row">
-          <div class="col-md-12">
-            <div class="card custom-card border-0">
-              <div class="card-header align-items-center bg-white">
-                <div class="card-body d-flex p-0 justify-content-between flex-fill">
-                  <div class="d-flex align-items-center flex-wrap gap-2">
-                    <div class="card-header bg-white border-0 p-1">
-                      <h1 style="font-weight: 300;">Artist</h1>
-                      <div class="d-flex">
-                        <button type="button" class="btn btn-warning">new</button>
-                        <div class="dropdown">
-                          <button
-                            class="btn btn-outline-primary dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                          >
-                            Action
-                          </button>
-                          <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                          </ul>
-                        </div>
-                      </div>
+          <div class="col-4">
+            <div class="card">
+              <div class="detail-items row">
+                <span class="text-muted">Name</span>
+                <span>Sandy B</span>
+                <hr />
+                <span class="text-muted">Email</span>
+                <span>sadasdas@asdsad.com</span>
+                <hr />
+                <span class="text-muted">Phone Number</span>
+                <span>0987456789</span>
+                <hr />
+                <span class="text-muted">Birth Date</span>
+                <span>12/4/1989</span>
+                <hr />
+                <span class="text-muted">Gender</span>
+                <span>Male</span>
+                <hr />
+                <span class="text-muted">Address</span>
+                <span>Lorem, ipsum dolor sit amet consectetur adipisicing elit.</span>
+                <hr />
+              </div>
+            </div>
+          </div>
+          <div class="col-8">
+            <div class="card card-custom">
+              <div class="card-body">
+                <ul class="nav nav-underline p-2">
+                  <li class="nav-item">
+                    <RouterLink to="/composer-detail">
+                      <a class="nav-link" aria-current="page" href="">SONG</a>
+                    </RouterLink>
+                  </li>
+                  <li class="nav-item">
+                    <RouterLink to="/composer-attach">
+                      <a class="nav-link active" aria-current="page">ATTACHMENT AND NOTES</a>
+                    </RouterLink>
+                  </li>
+                </ul>
+                <div class="container-fluid p-0">
+                  <div class="card-body p-1">
+                    <div class="d-flex">
+
+                      <button type="button" class="btn btn-outline-primary border-0">
+                        Attachment
+                        <img src="/src/assets/x.svg" alt="">
+                      </button>
                       <div class="dropdown">
                         <button
-                          class="btn btn-outine-secondary btn-sm dropdown-toggle"
+                          class="btn btn-outline-primary dropdown-toggle border-0"
                           type="button"
                           data-bs-toggle="dropdown"
                           aria-expanded="false"
                         >
-                          Dropdown button
+                        <img src="/src/assets/three-dots.svg" alt="">
                         </button>
                         <ul class="dropdown-menu">
                           <li><a class="dropdown-item" href="#">Action</a></li>
@@ -99,86 +122,6 @@ onMounted(()=> {
                         </ul>
                       </div>
                     </div>
-                  </div>
-                  <div class="d-flex align-items-center flex-wrap gap-2">
-                    <form class="d-flex" role="search">
-                      <div class="input-group input-group-sm">
-                        <input
-                          type="text"
-                          class="form-control"
-                          placeholder="Search"
-                          aria-label="Search"
-                          aria-describedby="inputGroup-sizing-sm"
-                        />
-                        <ButtonItems class="bg-white border">
-                          <img src="/src/assets/search.svg" alt="" />
-                        </ButtonItems>
-                      </div>
-                      <ButtonItems class="bg-white border">
-                        <img src="/src/assets/arrow-repeat.svg" alt="" />
-                      </ButtonItems>
-                    </form>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="container-fluid">
-                  <div class="layout-row">
-                    <div class="layout-cell">
-                      <div class="scroll">
-                        <div class="scroll-head" style="position: relative">
-                          <table class="table">
-                            <thead>
-                              <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Genre</th>
-                                <th scope="col">Category</th>
-                                <th scope="col">Manager/Contact Person</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr v-for="artist in artists" :key="artist.id">
-                                <td>
-                                  <RouterLink :to="`/artist-member/${artist.id}`" class="view-btn">
-                                    {{ artist.name }}
-                                  </RouterLink>
-                                </td>
-                                <td>
-                                  {{ artist.genre }}
-                                </td>
-                                <td>
-                                  {{ artist.category }}
-                                </td>
-                                <td>
-                                  <a href="">{{ artist.manager }}</a>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-footer">
-                <div v-if="loading">Loading...</div>
-                <div class="d-flex align-items-center">
-                  <div id="user_table_info">Page {{ currentPage }} of {{ lastPage }}</div>
-                  <div id="user_table_pagination" class="ms-auto">
-                    <nav aria-label="Page navigation example">
-                      <ul v-if="lastPage > 1" class="pagination justify-content-end">
-                        <li :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-item">
-                          <span  :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-link">Previous</span>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                          <span  :disabled="currentPage === lastPage" @click="PageArtists(currentPage + 1)" class="page-link">Next</span>
-                        </li>
-                      </ul>
-                    </nav>
                   </div>
                 </div>
               </div>
@@ -429,7 +372,6 @@ onMounted(()=> {
 }
 
 .table {
-  padding: 14px 20px;
   margin: 10px;
 }
 .table thead tr th {
@@ -495,6 +437,7 @@ onMounted(()=> {
   padding: 20px;
 }
 
+
 .ms-auto {
   height: 38px;
 }
@@ -503,16 +446,9 @@ onMounted(()=> {
   text-align: center;
   color: #6c757d;
   font-size: 14px;
-  position: fixed;
+  position: absolute bottom;
   bottom: 0;
   width: 100%;
-  padding-inline-end: 245px;
-}
-
-.dropdown {
-  height: 37px;
-  position: relative;
-  width: 34px;
 }
 
 .btn.btn-sm {
@@ -554,4 +490,14 @@ a {
 .dropdown-item {
   padding: 10px 16px;
 }
+
+.detail-items{
+  margin: 15px;
+}
+
+.card{
+  margin: 10px;
+}
+
+
 </style>

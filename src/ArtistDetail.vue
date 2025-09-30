@@ -1,52 +1,77 @@
 <script setup>
-import { onMounted,ref } from 'vue'
+import { watch, computed, onMounted, ref } from 'vue'
 import SideBarbase from './components/sideBarbase.vue'
 import NavBarbase from './components/navBarbase.vue'
 import Breadcrumb from './components/breadcrumb.vue'
 import ButtonBase from './components/buttonBase.vue'
 import ButtonItems from './components/buttonItems.vue'
+import { RouterLink, useRoute } from 'vue-router'
 import api from './axios'
+
+const props = defineProps({
+  artistId: { type: Number, required: true },  // Or use route param
+});
 
 const toggleActive = ref(false)
 function handleToggle() {
   toggleActive.value = !toggleActive.value
 }
 
-const artists = ref([]);
-const currentPage = ref(1)
-const lastPage = ref(1)
-const loading = ref(false)
+const artist = ref([]);
+const loading = ref(true);
+const error = ref('');
 
-const fetchArtists = async () => {
-  try {
-    const response = await api.get('/artists')
-    artists.value = response.data.data
-    console.log('Fetched artists:', artists.value)
-  } catch (error) {
-    console.error('Error fetching artists:', error)
+const route = useRoute();  // For router-based ID
+
+// Use prop or route param
+const id = computed(() => props.artistId || route.params.id);
+
+async function fetchArtist() {
+  if (!id.value) {
+    error.value = 'No artist ID provided';
+    loading.value = false;
+    return;
   }
-}
 
-async function PageArtists(page = 1) {
-  loading.value = true
   try {
-    const response = await api.get(`/artists?page=${page}`, { withCredentials: true })
-    const resData = response.data
-    artists.value = resData.data // paginated songs array
-    currentPage.value = resData.current_page
-    lastPage.value = resData.last_page
-  } catch (error) {
-    console.error('Failed to fetch songs:', error)
+    loading.value = true;
+    error.value = '';
+
+    const response = await api.get(`/artists/${id.value}`, {
+      withCredentials: true,
+    });
+
+    // Access response.data.artist (from controller)
+    artist.value = response.data.artist;
+
+    // Validate: Ensure object
+    if (!artist.value || typeof artist.value !== 'object') {
+      throw new Error('Invalid artist data');
+    }
+
+    console.log('Artist Fetched:', artist.value.name);  // Debug
+  } catch (err) {
+    console.error('Fetch Error:', err);
+    if (err.response?.status === 404) {
+      error.value = 'Artist not found';
+    } else if (err.response) {
+      error.value = `Error ${err.response.status}: ${err.response.statusText}`;
+    } else {
+      error.value = err.message || 'Failed to fetch artist';
+    }
+    artist.value = null;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-onMounted(()=> {
-  fetchArtists()
-  PageArtists()
-})
+onMounted(() => {
+  fetchArtist();
+});
 
+watch(() => id.value, () => {
+  fetchArtist();  // Refetch if ID changes
+});
 
 </script>
 
@@ -57,40 +82,116 @@ onMounted(()=> {
       <NavBarbase @toggleActive="handleToggle"></NavBarbase>
       <Breadcrumb>Artist</Breadcrumb>
       <div class="container-fluid mb-5">
+        <div class="card card-custom">
+          <div class="card-header bg-white border-0">
+            <h1>{{ artist.name }}</h1>
+            <div class="d-flex justify-content-between mb-2">
+              <div class="d-flex">
+                <RouterLink to="/artist-list">
+                  <button type="button" class="btn btn-warning">close</button>
+                </RouterLink>
+                <div class="dropdown">
+                  <button
+                    class="btn btn-outline-primary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Action
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-primary dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  VIEW
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="row">
-          <div class="col-md-12">
-            <div class="card custom-card border-0">
-              <div class="card-header align-items-center bg-white">
-                <div class="card-body d-flex p-0 justify-content-between flex-fill">
-                  <div class="d-flex align-items-center flex-wrap gap-2">
-                    <div class="card-header bg-white border-0 p-1">
-                      <h1 style="font-weight: 300;">Artist</h1>
-                      <div class="d-flex">
-                        <button type="button" class="btn btn-warning">new</button>
-                        <div class="dropdown">
-                          <button
-                            class="btn btn-outline-primary dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                          >
-                            Action
-                          </button>
-                          <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                          </ul>
-                        </div>
-                      </div>
+          <div class="col-4">
+            <div class="card">
+              <div class="detail-items row">
+                <span class="text-muted">Name</span>
+                <span>{{ artist.name }}</span>
+                <hr />
+                <span class="text-muted">Manager/Contact Person</span>
+                <span>{{ artist.manager }}</span>
+                <hr />
+                <span class="text-muted">Genre</span>
+                <span>{{ artist.genre }}</span>
+                <hr />
+                <span class="text-muted">Category</span>
+                <span>{{ artist.category }}</span>
+                <hr />
+                <span class="text-muted">Founding date</span>
+                <span>{{ artist.birth_date }}</span>
+                <hr />
+                <span class="text-muted">Notes</span>
+                <span>{{ artist.biography }}</span>
+                <hr />
+              </div>
+            </div>
+          </div>
+          <div class="col-8">
+            <div class="card">
+            </div>
+            <div class="card card-custom">
+              <div class="card-body">
+                <ul class="nav nav-underline p-2">
+                  <li class="nav-item">
+                    <RouterLink :to="`/artist-member/${artist.id}`">
+                      <a class="nav-link active" aria-current="page" href="">MEMBER</a>
+                    </RouterLink>
+                  </li>
+                  <li class="nav-item">
+                    <RouterLink :to="`/artist-comm/${artist.id}`">
+                      <a class="nav-link" aria-current="page">COMMUNICATION</a>
+                    </RouterLink>
+                  </li>
+                  <li class="nav-item">
+                    <RouterLink :to="`/artist-song/${artist.id}`">
+                      <a class="nav-link" aria-current="page" href="">ALBUM & SONG</a>
+                    </RouterLink>
+                  </li>
+                  <li class="nav-item">
+                    <RouterLink :to="`/artist-attach/${artist.id}`">
+                      <a class="nav-link" aria-current="page">ATTACHMENT AND NOTES</a>
+                    </RouterLink>
+                  </li>
+                </ul>
+                <div class="container-fluid p-0">
+                  <div class="card-body p-1">
+                    <div class="d-flex">
+
+                      <button type="button" class="btn btn-outline-primary border-0">
+                        Member
+                        <img src="/src/assets/x.svg" alt="">
+                      </button>
                       <div class="dropdown">
                         <button
-                          class="btn btn-outine-secondary btn-sm dropdown-toggle"
+                          class="btn btn-outline-primary dropdown-toggle border-0"
                           type="button"
                           data-bs-toggle="dropdown"
                           aria-expanded="false"
                         >
-                          Dropdown button
+                        <img src="/src/assets/three-dots.svg" alt="">
                         </button>
                         <ul class="dropdown-menu">
                           <li><a class="dropdown-item" href="#">Action</a></li>
@@ -99,86 +200,22 @@ onMounted(()=> {
                         </ul>
                       </div>
                     </div>
-                  </div>
-                  <div class="d-flex align-items-center flex-wrap gap-2">
-                    <form class="d-flex" role="search">
-                      <div class="input-group input-group-sm">
-                        <input
-                          type="text"
-                          class="form-control"
-                          placeholder="Search"
-                          aria-label="Search"
-                          aria-describedby="inputGroup-sizing-sm"
-                        />
-                        <ButtonItems class="bg-white border">
-                          <img src="/src/assets/search.svg" alt="" />
-                        </ButtonItems>
-                      </div>
-                      <ButtonItems class="bg-white border">
-                        <img src="/src/assets/arrow-repeat.svg" alt="" />
-                      </ButtonItems>
-                    </form>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="container-fluid">
-                  <div class="layout-row">
-                    <div class="layout-cell">
-                      <div class="scroll">
-                        <div class="scroll-head" style="position: relative">
-                          <table class="table">
-                            <thead>
-                              <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Genre</th>
-                                <th scope="col">Category</th>
-                                <th scope="col">Manager/Contact Person</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr v-for="artist in artists" :key="artist.id">
-                                <td>
-                                  <RouterLink :to="`/artist-member/${artist.id}`" class="view-btn">
-                                    {{ artist.name }}
-                                  </RouterLink>
-                                </td>
-                                <td>
-                                  {{ artist.genre }}
-                                </td>
-                                <td>
-                                  {{ artist.category }}
-                                </td>
-                                <td>
-                                  <a href="">{{ artist.manager }}</a>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-footer">
-                <div v-if="loading">Loading...</div>
-                <div class="d-flex align-items-center">
-                  <div id="user_table_info">Page {{ currentPage }} of {{ lastPage }}</div>
-                  <div id="user_table_pagination" class="ms-auto">
-                    <nav aria-label="Page navigation example">
-                      <ul v-if="lastPage > 1" class="pagination justify-content-end">
-                        <li :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-item">
-                          <span  :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-link">Previous</span>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                          <span  :disabled="currentPage === lastPage" @click="PageArtists(currentPage + 1)" class="page-link">Next</span>
-                        </li>
-                      </ul>
-                    </nav>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Phone Mobile</th>
+                          <th scope="col">Email</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Ari Lasso</td>
+                          <td>0987654567</td>
+                          <td>asdsada@asdasd.com</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -429,7 +466,6 @@ onMounted(()=> {
 }
 
 .table {
-  padding: 14px 20px;
   margin: 10px;
 }
 .table thead tr th {
@@ -495,6 +531,7 @@ onMounted(()=> {
   padding: 20px;
 }
 
+
 .ms-auto {
   height: 38px;
 }
@@ -507,12 +544,6 @@ onMounted(()=> {
   bottom: 0;
   width: 100%;
   padding-inline-end: 245px;
-}
-
-.dropdown {
-  height: 37px;
-  position: relative;
-  width: 34px;
 }
 
 .btn.btn-sm {
@@ -554,4 +585,14 @@ a {
 .dropdown-item {
   padding: 10px 16px;
 }
+
+.detail-items{
+  margin: 15px;
+}
+
+.card{
+  margin: 10px;
+}
+
+
 </style>

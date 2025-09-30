@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted,ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import SideBarbase from './components/sideBarbase.vue'
 import NavBarbase from './components/navBarbase.vue'
 import Breadcrumb from './components/breadcrumb.vue'
@@ -12,27 +12,33 @@ function handleToggle() {
   toggleActive.value = !toggleActive.value
 }
 
-const artists = ref([]);
+const songs = ref([])
 const currentPage = ref(1)
 const lastPage = ref(1)
 const loading = ref(false)
 
-const fetchArtists = async () => {
+const fetchSongs = async () => {
   try {
-    const response = await api.get('/artists')
-    artists.value = response.data.data
-    console.log('Fetched artists:', artists.value)
+    const response = await api.get('/songs', { withCredentials: true })
+    // Extract songs array from response.data.data
+    if (Array.isArray(response.data.data)) {
+      songs.value = response.data.data
+      console.log('Fetched songs:', songs.value)
+    } else {
+      songs.value = []
+      console.warn('Songs data is not an array:', response.data.data)
+    }
   } catch (error) {
-    console.error('Error fetching artists:', error)
+    console.error('Failed to fetch songs:', error)
   }
 }
 
-async function PageArtists(page = 1) {
+async function PageSongs(page = 1) {
   loading.value = true
   try {
-    const response = await api.get(`/artists?page=${page}`, { withCredentials: true })
+    const response = await api.get(`/songs?page=${page}`, { withCredentials: true })
     const resData = response.data
-    artists.value = resData.data // paginated songs array
+    songs.value = resData.data // paginated songs array
     currentPage.value = resData.current_page
     lastPage.value = resData.last_page
   } catch (error) {
@@ -42,12 +48,10 @@ async function PageArtists(page = 1) {
   }
 }
 
-onMounted(()=> {
-  fetchArtists()
-  PageArtists()
+onMounted(() => {
+  fetchSongs()
+  PageSongs()
 })
-
-
 </script>
 
 <template>
@@ -55,16 +59,16 @@ onMounted(()=> {
     <SideBarbase :class="{ hide: toggleActive }"></SideBarbase>
     <div class="main-content">
       <NavBarbase @toggleActive="handleToggle"></NavBarbase>
-      <Breadcrumb>Artist</Breadcrumb>
+      <Breadcrumb>Asset</Breadcrumb>
       <div class="container-fluid mb-5">
         <div class="row">
           <div class="col-md-12">
             <div class="card custom-card border-0">
-              <div class="card-header align-items-center bg-white">
+              <div class="card-header align-items-center bg-white border-0">
                 <div class="card-body d-flex p-0 justify-content-between flex-fill">
                   <div class="d-flex align-items-center flex-wrap gap-2">
                     <div class="card-header bg-white border-0 p-1">
-                      <h1 style="font-weight: 300;">Artist</h1>
+                      <h1 style="font-weight: 300">Asset</h1>
                       <div class="d-flex">
                         <button type="button" class="btn btn-warning">new</button>
                         <div class="dropdown">
@@ -82,21 +86,6 @@ onMounted(()=> {
                             <li><a class="dropdown-item" href="#">Something else here</a></li>
                           </ul>
                         </div>
-                      </div>
-                      <div class="dropdown">
-                        <button
-                          class="btn btn-outine-secondary btn-sm dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Dropdown button
-                        </button>
-                        <ul class="dropdown-menu">
-                          <li><a class="dropdown-item" href="#">Action</a></li>
-                          <li><a class="dropdown-item" href="#">Another action</a></li>
-                          <li><a class="dropdown-item" href="#">Something else here</a></li>
-                        </ul>
                       </div>
                     </div>
                   </div>
@@ -122,41 +111,181 @@ onMounted(()=> {
                 </div>
               </div>
               <div class="card-body p-0">
-                <div class="container-fluid">
-                  <div class="layout-row">
-                    <div class="layout-cell">
-                      <div class="scroll">
-                        <div class="scroll-head" style="position: relative">
-                          <table class="table">
-                            <thead>
-                              <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Genre</th>
-                                <th scope="col">Category</th>
-                                <th scope="col">Manager/Contact Person</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr v-for="artist in artists" :key="artist.id">
-                                <td>
-                                  <RouterLink :to="`/artist-member/${artist.id}`" class="view-btn">
-                                    {{ artist.name }}
-                                  </RouterLink>
-                                </td>
-                                <td>
-                                  {{ artist.genre }}
-                                </td>
-                                <td>
-                                  {{ artist.category }}
-                                </td>
-                                <td>
-                                  <a href="">{{ artist.manager }}</a>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
+                <div class="row">
+                  <div class="col-3">
+                    <div class="card-body">
+                      <div class="collapsed">
+                        <div
+                          class="list-item btn"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#home-collapse-2"
+                          aria-expanded="true"
+                        >
+                          <img src="/src/assets/house.svg" alt="" class="icon" />
+                          <span class="description">Favorite</span>
+                        </div>
+                        <div class="collapse" id="home-collapse-2">
+                          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                            <div class="list-item">
+                              <router-link to="/crm">
+                                <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                <span class="description">CRM</span>
+                              </router-link>
+                            </div>
+                            <div class="list-item">
+                              <router-link to="/sales">
+                                <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                <span class="description">Sales</span>
+                              </router-link>
+                            </div>
+                          </ul>
                         </div>
                       </div>
+                      <div class="collapsed">
+                        <div
+                          class="list-item btn"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#home-collapse-1"
+                          aria-expanded="true"
+                        >
+                          <img src="/src/assets/house.svg" alt="" class="icon" />
+                          <span class="description">All</span>
+                        </div>
+                        <div class="collapse" id="home-collapse-1">
+                          <div class="collapsed">
+                            <div
+                              class="list-item btn"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#home-collapse-3"
+                              aria-expanded="true"
+                            >
+                              <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                              <span class="description">Artist</span>
+                            </div>
+                            <div class="collapse" id="home-collapse-3">
+                              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <div class="list-item">
+                                  <router-link to="/crm">
+                                    <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                    <span class="description">CRM</span>
+                                  </router-link>
+                                </div>
+                                <div class="list-item">
+                                  <router-link to="/sales">
+                                    <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                    <span class="description">Sales</span>
+                                  </router-link>
+                                </div>
+                              </ul>
+                            </div>
+                          </div>
+                          <div class="collapsed">
+                            <div
+                              class="list-item btn"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#home-collapse-4"
+                              aria-expanded="true"
+                            >
+                              <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                              <span class="description">Artist</span>
+                            </div>
+                            <div class="collapse" id="home-collapse-4">
+                              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <div class="list-item">
+                                  <router-link to="/crm">
+                                    <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                    <span class="description">CRM</span>
+                                  </router-link>
+                                </div>
+                                <div class="list-item">
+                                  <router-link to="/sales">
+                                    <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                    <span class="description">Sales</span>
+                                  </router-link>
+                                </div>
+                              </ul>
+                            </div>
+                          </div>
+                          <div class="collapsed">
+                            <div
+                              class="list-item btn"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#home-collapse-5"
+                              aria-expanded="true"
+                            >
+                              <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                              <span class="description">Artist</span>
+                            </div>
+                            <div class="collapse" id="home-collapse-5">
+                              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <div class="list-item">
+                                  <router-link to="/crm">
+                                    <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                    <span class="description">CRM</span>
+                                  </router-link>
+                                </div>
+                                <div class="list-item">
+                                  <router-link to="/sales">
+                                    <img src="/src/assets/circle.svg" alt="" class="icon-child" />
+                                    <span class="description">Sales</span>
+                                  </router-link>
+                                </div>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-9">
+                    <div class="card-body">
+                      <div class="dropdown">
+                        <button
+                          class="btn btn-outine-secondary btn-sm dropdown-toggle"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                        >
+                          Dropdown button
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li><a class="dropdown-item" href="#">Action</a></li>
+                          <li><a class="dropdown-item" href="#">Another action</a></li>
+                          <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                      </div>
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Artist</th>
+                            <th scope="col">Composer</th>
+                            <th scope="col">Type of Contract</th>
+                            <th scope="col">Label</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="song in songs" :key="song.id">
+                            <td>
+                              <RouterLink :to="`/asset-detail/${song.id}`">
+                                {{ song.title }}
+                              </RouterLink>
+                            </td>
+                            <td>
+                              <RouterLink :to="`/artist-member/${song.artist.id}`">
+                                {{ song.artist.name }}
+                              </RouterLink>
+                            </td>
+                            <td>
+                              <RouterLink :to="`/composer-detail/${song.composer.id}`">{{ song.composer.name }}</RouterLink>
+                            </td>
+                            <td>{{ song.royalty_contract }}</td>
+                            <td>
+                              <RouterLink to="/label-detail">{{ song.label }}</RouterLink>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
@@ -168,14 +297,14 @@ onMounted(()=> {
                   <div id="user_table_pagination" class="ms-auto">
                     <nav aria-label="Page navigation example">
                       <ul v-if="lastPage > 1" class="pagination justify-content-end">
-                        <li :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-item">
-                          <span  :disabled="currentPage === 1" @click="PageArtists(currentPage - 1)" class="page-link">Previous</span>
+                        <li :disabled="currentPage === 1" @click="PageSongs(currentPage - 1)" class="page-item">
+                          <span  :disabled="currentPage === 1" @click="PageSongs(currentPage - 1)" class="page-link">Previous</span>
                         </li>
                         <li class="page-item"><a class="page-link" href="#">1</a></li>
                         <li class="page-item"><a class="page-link" href="#">2</a></li>
                         <li class="page-item"><a class="page-link" href="#">3</a></li>
                         <li class="page-item">
-                          <span  :disabled="currentPage === lastPage" @click="PageArtists(currentPage + 1)" class="page-link">Next</span>
+                          <span  :disabled="currentPage === lastPage" @click="PageSongs(currentPage + 1)" class="page-link">Next</span>
                         </li>
                       </ul>
                     </nav>
@@ -294,7 +423,7 @@ onMounted(()=> {
   flex: 1;
 }
 
-.sidebar .main .list-item .description {
+.description {
   font-size: 14px;
   color: #6c757d;
   margin-left: 10px;
@@ -310,10 +439,10 @@ onMounted(()=> {
   display: inline-block;
   transition: all ease-in 0.3s;
 }
-
-.sidebar .main .list-item .icon {
-  width: 20px;
-  height: 20px;
+.icon {
+  width: 15px;
+  height: 15px;
+  margin: 3px;
   display: inline-block;
   vertical-align: middle;
 }
@@ -379,9 +508,10 @@ onMounted(()=> {
   margin: 10px;
 }
 
-.sidebar .main .list-item .icon-child {
-  width: 7px;
-  height: 7px;
+.icon-child {
+  width: 10px;
+  height: 10px;
+  margin: 5px;
   display: inline-block;
   vertical-align: middle;
 }
