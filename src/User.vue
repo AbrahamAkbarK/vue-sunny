@@ -3,276 +3,175 @@ import Breadcrumb from './components/breadcrumb.vue'
 import NavBarbase from './components/navBarbase.vue'
 import SideBarbase from './components/sideBarbase.vue'
 import modalComp from './components/modalComp.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import Piechart from './components/piechart.vue'
+import api from './axios'
 const toggleActive = ref(false)
 
 function handleToggle() {
-  toggleActive.value = !toggleActive.value;
+  toggleActive.value = !toggleActive.value
 }
+
+const totalSongs = ref(0)
+const loading = ref(true)
+const error = ref(null)
+
+const fetchSongs = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await api.get('/total-songs', { withCredentials: true })
+    const data = response.data // Axios auto-parses JSON, handles types better
+    // Axios ensures numbers stay numbers from JSON
+    totalSongs.value = data.total_songs || 0
+    // If the API returns a number directly
+    if (data && typeof data.total_songs !== 'undefined') {
+      totalSongs.value =
+        typeof data.total_songs === 'number'
+          ? data.total_songs
+          : parseInt(data.total_songs, 10) || 0 // Convert string to int, fallback 0
+    } else {
+      throw new Error('Invalid data structure')
+    }
+
+    console.log('Processed Total Songs:', totalSongs.value, typeof totalSongs.value)
+  } catch (err) {
+    console.error('Error:', err)
+    totalSongs.value = 0
+    error.value = 'Failed to load data'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchSongs()
+})
 </script>
 
 <template>
   <div class="container">
-    <SideBarbase :class="{hide:toggleActive}"></SideBarbase>
+    <SideBarbase :class="{ hide: toggleActive }"></SideBarbase>
     <div class="main-content">
-      <NavBarbase  @toggleActive="handleToggle"></NavBarbase>
-      <Breadcrumb>
-        Users</Breadcrumb>
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-12">
-            <div class="card custom-card border-0">
-              <div class="card-header align-items-center bg-white">
-                <div class="card-body d-flex p-0 justify-content-between flex-fill">
-                  <div class="d-flex align-items-center flex-wrap gap-2">
-                    <button
-                      type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#staticBackdrop"
-                      class="btn btn-warning text-white fw-semibold"
-                    >
-                      + Register user
-                    </button>
-                  </div>
-                  <div class="d-flex align-items-center flex-wrap gap-2">
-                    <form class="d-flex" role="search">
-                      <div class="input-group input-group-sm">
-                        <input
-                          type="text"
-                          class="form-control"
-                          placeholder="Search"
-                          aria-label="Search"
-                          aria-describedby="inputGroup-sizing-sm"
-                        />
-                        <button class="btn btn-sm border" type="button" id="button-addon2">
-                          <img src="/src/assets/search.svg" alt="" />
-                        </button>
-                      </div>
-                      <button class="btn btn-sm btn-light" type="submit">
-                        <img src="/src/assets/arrow-repeat.svg" alt="" />
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="container-fluid">
-                  <div class="layout-row">
-                    <div class="layout-cell">
-                      <div class="scroll">
-                        <div class="scroll-head" style="position: relative">
-                          <table class="table">
-                            <thead>
-                              <tr>
-                                <th scope="col">
-                                  <span> </span>
-                                </th>
-                                <th scope="col">#</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Verified</th>
-                                <th scope="col">License</th>
-                                <th scope="col">Uploaded file</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <div class="dropdown">
-                                    <button
-                                      class="btn btn-sm btn-light"
-                                      type="button"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                    >
-                                      <img src="/src/assets/three-dots.svg" alt="" />
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                      <li>
-                                        <button class="dropdown-item" type="button">
-                                          Reset password
-                                        </button>
-                                      </li>
-                                      <li>
-                                        <button class="dropdown-item" type="button">
-                                          Assign License
-                                        </button>
-                                      </li>
-                                      <li>
-                                        <button class="dropdown-item" type="button">Delete</button>
-                                      </li>
-                                    </ul>
-                                  </div>
-                                </td>
-                                <td>1</td>
-                                <td>
-                                  <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1">
-                                      <span class="avatar avatar-rounded">
-                                        <img src="/src/assets/emoji-kiss.svg" alt="" />
-                                      </span>
-                                    </div>
-                                    <div class="d-flex flex-column gap-1">
-                                      <span>BadRun</span>
-                                      <span class="text-muted">abarhamak@gmail.com</span>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td>
-                                  <span class="badge bg-success">Confirmed</span>
-                                </td>
-                                <td>
-                                  <span class="badge bg-danger">No license</span>
-                                </td>
-                                <td>
-                                  <div class="d-flex flex-column gap-1">
-                                    <span>2 files</span>
-                                    <span class="text-muted">100 B</span>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="dropdown">
-                                    <button
-                                      class="btn btn-sm btn-light"
-                                      type="button"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                    >
-                                      <img src="/src/assets/three-dots.svg" alt="" />
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                      <li>
-                                        <button class="dropdown-item" type="button">Action</button>
-                                      </li>
-                                      <li>
-                                        <button class="dropdown-item" type="button">
-                                          Another action
-                                        </button>
-                                      </li>
-                                      <li>
-                                        <button class="dropdown-item" type="button">
-                                          Something else here
-                                        </button>
-                                      </li>
-                                    </ul>
-                                  </div>
-                                </td>
-                                <td>1</td>
-                                <td>Otto</td>
-                                <td>Verified</td>
-                                <td>no License</td>
-                                <td>No file</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="dropdown">
-                                    <button
-                                      class="btn btn-sm btn-light"
-                                      type="button"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                    >
-                                      <img src="/src/assets/three-dots.svg" alt="" />
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                      <li>
-                                        <button class="dropdown-item" type="button">Action</button>
-                                      </li>
-                                      <li>
-                                        <button class="dropdown-item" type="button">
-                                          Another action
-                                        </button>
-                                      </li>
-                                      <li>
-                                        <button class="dropdown-item" type="button">
-                                          Something else here
-                                        </button>
-                                      </li>
-                                    </ul>
-                                  </div>
-                                </td>
-                                <td>1</td>
-                                <td>Otto</td>
-                                <td>Verified</td>
-                                <td>no License</td>
-                                <td>No file</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          <!-- <table class="table table-striped table-bordered">
-                            <thead>
-                              <tr>
-                                <th scope="col">
-                                  <span> </span>
-                                </th>
-                                <th scope="col">
-                                  <span>No.</span>
-                                </th>
-                                <th scope="col">
-                                  <span>Name</span>
-                                </th>
-                                <th scope="col">
-                                  <span>Verified</span>
-                                </th>
-                                <th scope="col">
-                                  <span>License</span>
-                                </th>
-                                <th scope="col">
-                                  <span>Uploaded file</span>
-                                </th>
-                              </tr>
-                            </thead>
-                          </table> -->
+      <NavBarbase @toggleActive="handleToggle"></NavBarbase>
+      <Breadcrumb> Dashboard </Breadcrumb>
+      <div class="container-fluid mb-2">
+        <div class="card custom-card border-0">
+          <div class="card-header bg-white border-0">
+            <h1 style="font-weight: 300">Dashboard</h1>
+          </div>
+          <div class="card-body">
+            <ul class="nav nav-underline">
+              <li class="nav-item">
+                <a class="nav-link active m-2" aria-current="page" href="">Dashboard</a>
+              </li>
+            </ul>
+            <div class="row">
+              <div class="col-6">
+                <div class="d-flex">
+                  <div class="card text-center m-2" style="width: 18rem">
+                    <div class="card-body p-5 m-4">
+                      <h5 class="card-title p-3">Total Asset</h5>
+                      <h5 class="card-text fw-medium">
+                        <div v-if="loading" class="loading">Loading...</div>
+                        <div v-else class="song-count">
+                          {{ totalSongs.toLocaleString() }}
+                          <!-- Formats as 1,234 -->
                         </div>
-                        <div class="scroll-body">
-                          <!-- <table class="table table-striped table-bordered">
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <input type="checkbox" />
-                                </td>
-                                <td>1</td>
-                                <td>John Doe</td>
-                                <td>Yes</td>
-                                <td>Active</td>
-                                <td>File.pdf</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <input type="checkbox" />
-                                </td>
-                                <td>2</td>
-                                <td>Jane Smith</td>
-                                <td>No</td>
-                                <td>Inactive</td>
-                                <td>File.docx</td>
-                              </tr>
-                            </tbody>
-                          </table> -->
-                        </div>
+                        <p v-if="error" class="error">{{ error }}</p>
+                      </h5>
+                    </div>
+                  </div>
+                  <div class="card m-2" style="width: 18rem">
+                    <div class="card-body p-3">
+                      <h5 class="card-title">Total Artis</h5>
+                      <div class="chart-item">
+                        <Piechart />
                       </div>
                     </div>
                   </div>
                 </div>
+                <div class="card m-2">
+                  <div class="card-body">
+                    <h5>Fresh Launch</h5>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Artist</th>
+                          <th scope="col">Track</th>
+                          <th scope="col">Label</th>
+                          <th scope="col">Composer Publishing</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Agnes</td>
+                          <td>Cinta</td>
+                          <td>Aquarius</td>
+                          <td>TBD</td>
+                        </tr>
+                        <tr>
+                          <td>Agnes</td>
+                          <td>Cinta</td>
+                          <td>Aquarius</td>
+                          <td>TBD</td>
+                        </tr>
+                        <tr>
+                          <td>Agnes</td>
+                          <td>Cinta</td>
+                          <td>Aquarius</td>
+                          <td>TBD</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-              <div class="card-footer">
-                <div class="d-flex align-items-center">
-                  <div id="user_table_info">Showing 1 to 1 of 1 entries</div>
-                  <div id="user_table_pagination" class="ms-auto">
-                    <nav aria-label="Page navigation example">
-                      <ul class="pagination justify-content-end">
-                        <li class="page-item disabled">
-                          <a class="page-link">Previous</a>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                          <a class="page-link" href="#">Next</a>
-                        </li>
-                      </ul>
-                    </nav>
+              <div class="col-6">
+                <div class="card m-2">
+                  <div class="card-body">
+                    <h5>Expired Contract</h5>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <td class="text-muted fw-medium" scope="col">Title</td>
+                          <td class="text-muted fw-medium" scope="col">Artist</td>
+                          <td class="text-muted fw-medium" scope="col">Composer</td>
+                          <td class="text-muted fw-medium" scope="col">Label</td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Agnes</td>
+                          <td>Cinta</td>
+                          <td>Aquarius</td>
+                          <td>TBD</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card m-2">
+                  <div class="card-body">
+                    <h5>What's Special</h5>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Asset</th>
+                          <th scope="col">Artist</th>
+                          <th scope="col">Composer</th>
+                          <th scope="col">Periode Month</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Agnes</td>
+                          <td>Cinta</td>
+                          <td>Aquarius</td>
+                          <td>TBD</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -551,10 +450,6 @@ function handleToggle() {
   padding: 20px;
 }
 
-.card-header {
-  padding: 20px;
-}
-
 .ms-auto {
   height: 38px;
 }
@@ -563,10 +458,9 @@ function handleToggle() {
   text-align: center;
   color: #6c757d;
   font-size: 14px;
-  position: fixed;
+  position: absolute bottom;
   bottom: 0;
   width: 100%;
-  padding-inline-end: 245px;
 }
 
 .dropdown {
@@ -609,5 +503,13 @@ function handleToggle() {
 
 .dropdown-item {
   padding: 10px 16px;
+}
+
+.chart-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
 }
 </style>

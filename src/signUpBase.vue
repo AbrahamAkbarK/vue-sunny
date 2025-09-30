@@ -6,32 +6,49 @@ import ImagePanel from './components/imagePanel.vue'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { alertError, alertSuccess } from './assets/alert'
+import api from './axios'
 
 const router = useRouter()
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+const regName = ref('')
+const regEmail = ref('')
+const regPassword = ref('')
+const regPasswordConfirm = ref('')
+const error = ref('')
 
 async function handleSubmit() {
-  if (
-    !name.value.trim() ||
-    !email.value.trim() ||
-    !password.value.trim() ||
-    !confirmPassword.value.trim()
-  ) {
-    alert('Please fill in all fields.')
-    return
+  error.value = ''
+  try {
+    const response = await api.post('/register', {
+      name: regName.value,
+      email: regEmail.value,
+      password: regPassword.value,
+      password_confirmation: regPasswordConfirm.value,
+    })
+    localStorage.setItem('token', response.data.token)
+    await alertSuccess('Register Succesful')
+    router.push('/')
+  } catch (err) {
+    await alertError('Registration Failed')
+    error.value = err.response?.data?.message || 'Registration failed'
   }
-  if (password.value !== confirmPassword.value) {
-    await alertError('Passwords do not match.')
-    return
-  }
-  await alertSuccess('Registration successful!')
-  console.log(`Name: ${name.value}, Email: ${email.value}, Password: ${password.value}`)
-  router.push({
-    path: '/',
-  })
+  // if (
+  //   !name.value.trim() ||
+  //   !email.value.trim() ||
+  //   !password.value.trim() ||
+  //   !confirmPassword.value.trim()
+  // ) {
+  //   alert('Please fill in all fields.')
+  //   return
+  // }
+  // if (password.value !== confirmPassword.value) {
+  //   await alertError('Passwords do not match.')
+  //   return
+  // }
+  // await alertSuccess('Registration successful!')
+  // console.log(`Name: ${name.value}, Email: ${email.value}, Password: ${password.value}`)
+  // router.push({
+  //   path: '/',
+  // })
 }
 </script>
 
@@ -39,13 +56,13 @@ async function handleSubmit() {
   <div class="container-fluid">
     <div class="row min-vh-100">
       <div class="col-lg-5 bg-white d-flex flex-column justify-content-center p-5">
-        <form v-on:submit.prevent="handleSubmit">
+        <form v-on:submit.prevent="handleSubmit" method="post">
           <IconHead />
           <InputField
             label="Name"
             type="text"
             placeholder="Your full name, please 😊"
-            v-model="name"
+            v-model="regName"
             required
           >
           </InputField>
@@ -53,7 +70,7 @@ async function handleSubmit() {
             label="Email"
             type="email"
             placeholder="We'll need your best email 📧"
-            v-model="email"
+            v-model="regEmail"
             required
           >
           </InputField>
@@ -61,15 +78,15 @@ async function handleSubmit() {
             label="Password"
             type="password"
             placeholder="..........."
-            v-model="password"
+            v-model="regPassword"
             required
           >
           </InputField>
           <InputField
-            label="Confirm Password"
+            label="Confirm_Password"
             type="password"
             placeholder="..........."
-            v-model="confirmPassword"
+            v-model="regPasswordConfirm"
             required
           >
           </InputField>
@@ -124,16 +141,16 @@ async function handleSubmit() {
 </template>
 <style scoped>
 .image-panel-container {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 form {
   max-width: 400px;
   width: 100%;
   content: center;
   margin: auto;
   align-items: center;
-  }
+}
 </style>
